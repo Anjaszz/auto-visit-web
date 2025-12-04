@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Refresh Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-indigo-600 mb-2">🔄 Auto Refresh Web</h1>
+            <p class="text-gray-600">Refresh website secara otomatis dengan interval waktu tertentu</p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Input URL -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">URL Website</label>
+                <input 
+                    type="url" 
+                    id="urlInput" 
+                    placeholder="https://example.com"
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition"
+                    value="https://example.com"
+                >
+            </div>
+
+            <!-- Input Interval -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Interval Refresh (detik)</label>
+                <input 
+                    type="number" 
+                    id="intervalInput" 
+                    placeholder="5"
+                    min="1"
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition"
+                    value="5"
+                >
+            </div>
+
+            <!-- Input Total Refresh -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Total Refresh</label>
+                <input 
+                    type="number" 
+                    id="totalRefreshInput" 
+                    placeholder="10"
+                    min="1"
+                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:outline-none transition"
+                    value="10"
+                >
+            </div>
+
+            <!-- Tombol Kontrol -->
+            <div class="flex gap-4">
+                <button 
+                    id="startBtn"
+                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105 active:scale-95"
+                >
+                    ▶️ Mulai Refresh
+                </button>
+                <button 
+                    id="stopBtn"
+                    class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105 active:scale-95 opacity-50 cursor-not-allowed"
+                    disabled
+                >
+                    ⏹️ Stop
+                </button>
+            </div>
+
+            <!-- Status -->
+            <div id="statusBox" class="hidden bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-semibold text-indigo-800">Status:</span>
+                    <span id="statusText" class="text-indigo-600">Menunggu...</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="font-semibold text-indigo-800">Progress:</span>
+                    <span id="progressText" class="text-indigo-600">0 / 0</span>
+                </div>
+            </div>
+
+            <!-- Log Area -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Log Aktivitas</label>
+                <div id="logArea" class="bg-gray-900 text-green-400 p-4 rounded-lg h-48 overflow-y-auto font-mono text-sm">
+                    <div class="text-gray-500">Belum ada aktivitas...</div>
+                </div>
+            </div>
+
+            <!-- Preview Frame -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Preview Website</label>
+                <iframe 
+                    id="previewFrame" 
+                    class="w-full h-96 border-2 border-gray-300 rounded-lg"
+                    sandbox="allow-scripts allow-same-origin"
+                ></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let currentRefresh = 0;
+        let intervalId = null;
+
+        const urlInput = document.getElementById('urlInput');
+        const intervalInput = document.getElementById('intervalInput');
+        const totalRefreshInput = document.getElementById('totalRefreshInput');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusBox = document.getElementById('statusBox');
+        const statusText = document.getElementById('statusText');
+        const progressText = document.getElementById('progressText');
+        const logArea = document.getElementById('logArea');
+        const previewFrame = document.getElementById('previewFrame');
+
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString('id-ID');
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
+            
+            if (logArea.querySelector('.text-gray-500:only-child')) {
+                logArea.innerHTML = '';
+            }
+            
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function updateStatus(status, current, total) {
+            statusText.textContent = status;
+            progressText.textContent = `${current} / ${total}`;
+        }
+
+        async function startRefresh() {
+            const url = urlInput.value.trim();
+            const interval = parseInt(intervalInput.value) * 1000;
+            const totalRefresh = parseInt(totalRefreshInput.value);
+
+            if (!url || !interval || !totalRefresh) {
+                alert('Mohon isi semua field dengan benar!');
+                return;
+            }
+
+            isRunning = true;
+            currentRefresh = 0;
+            
+            // Disable inputs dan ubah tombol
+            urlInput.disabled = true;
+            intervalInput.disabled = true;
+            totalRefreshInput.disabled = true;
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            stopBtn.disabled = false;
+            stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            
+            statusBox.classList.remove('hidden');
+            
+            addLog(`🚀 <span class="text-yellow-400">Memulai auto refresh...</span>`);
+            addLog(`🌐 URL: <span class="text-blue-400">${url}</span>`);
+            addLog(`⏱️  Interval: <span class="text-blue-400">${interval/1000} detik</span>`);
+            addLog(`🔢 Total: <span class="text-blue-400">${totalRefresh}x</span>`);
+            
+            // Load pertama kali
+            previewFrame.src = url;
+            currentRefresh = 1;
+            updateStatus('Loading...', currentRefresh, totalRefresh);
+            addLog(`✅ Refresh ke-${currentRefresh}`);
+
+            // Mulai interval refresh
+            intervalId = setInterval(() => {
+                if (!isRunning || currentRefresh >= totalRefresh) {
+                    stopRefresh();
+                    return;
+                }
+
+                currentRefresh++;
+                previewFrame.src = url + '?t=' + Date.now(); // Tambah query parameter untuk force reload
+                updateStatus('Refreshing...', currentRefresh, totalRefresh);
+                addLog(`✅ Refresh ke-${currentRefresh}`);
+
+            }, interval);
+        }
+
+        function stopRefresh() {
+            isRunning = false;
+            
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+
+            // Enable inputs dan ubah tombol
+            urlInput.disabled = false;
+            intervalInput.disabled = false;
+            totalRefreshInput.disabled = false;
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            stopBtn.disabled = true;
+            stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            const totalRefresh = parseInt(totalRefreshInput.value);
+            
+            if (currentRefresh >= totalRefresh) {
+                updateStatus('Selesai! ✅', currentRefresh, totalRefresh);
+                addLog(`🎉 <span class="text-green-400">Auto refresh selesai!</span>`);
+            } else {
+                updateStatus('Dihentikan', currentRefresh, totalRefresh);
+                addLog(`⏸️  <span class="text-red-400">Refresh dihentikan oleh user</span>`);
+            }
+        }
+
+        startBtn.addEventListener('click', startRefresh);
+        stopBtn.addEventListener('click', stopRefresh);
+
+        // Prevent form submission on Enter
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!isRunning) startRefresh();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

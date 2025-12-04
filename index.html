@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi User Visit Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-pink-100 min-h-screen p-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-purple-600 mb-2">👥 Multi User Visit Simulator</h1>
+                <p class="text-gray-600">Simulasi kunjungan dari berbagai user berbeda ke website target</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <!-- Kolom Kiri -->
+                <div class="space-y-4">
+                    <!-- Input URL -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">🌐 URL Website Target</label>
+                        <input 
+                            type="url" 
+                            id="urlInput" 
+                            placeholder="https://example.com"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition"
+                            value="https://example.com"
+                        >
+                    </div>
+
+                    <!-- Input Jumlah Visitor -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">👤 Jumlah Virtual Visitor</label>
+                        <input 
+                            type="number" 
+                            id="visitorCount" 
+                            placeholder="10"
+                            min="1"
+                            max="50"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition"
+                            value="10"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Maksimal 50 visitor untuk performa optimal</p>
+                    </div>
+
+                    <!-- Input Interval -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">⏱️ Interval Antar Visitor (detik)</label>
+                        <input 
+                            type="number" 
+                            id="intervalInput" 
+                            placeholder="2"
+                            min="1"
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none transition"
+                            value="2"
+                        >
+                    </div>
+
+                    <!-- Random Delay -->
+                    <div>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="randomDelay" class="w-5 h-5 text-purple-600" checked>
+                            <span class="text-sm font-semibold text-gray-700">🎲 Random Delay (lebih natural)</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1 ml-7">Menambahkan variasi waktu acak antar kunjungan</p>
+                    </div>
+
+                    <!-- Randomize User Agent -->
+                    <div>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="randomUA" class="w-5 h-5 text-purple-600" checked>
+                            <span class="text-sm font-semibold text-gray-700">🔀 Randomize User Agent</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1 ml-7">Simulasi berbagai browser dan device</p>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan - Stats -->
+                <div class="space-y-4">
+                    <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-6 text-white">
+                        <h3 class="text-lg font-semibold mb-4">📊 Statistics</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Total Visitor:</span>
+                                <span class="font-bold" id="statTotal">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Berhasil:</span>
+                                <span class="font-bold text-green-300" id="statSuccess">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Gagal:</span>
+                                <span class="font-bold text-red-300" id="statFailed">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Progress:</span>
+                                <span class="font-bold" id="statProgress">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div id="statusBox" class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-purple-800">Status:</span>
+                            <span id="statusText" class="text-purple-600">Siap Memulai</span>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Kontrol -->
+                    <div class="flex gap-4">
+                        <button 
+                            id="startBtn"
+                            class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105 active:scale-95"
+                        >
+                            🚀 Mulai Simulasi
+                        </button>
+                        <button 
+                            id="stopBtn"
+                            class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105 active:scale-95 opacity-50 cursor-not-allowed"
+                            disabled
+                        >
+                            ⏹️ Stop
+                        </button>
+                         <a href="refresh.html">
+                            <button 
+                            class="flex-1 bg-green-700 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105 active:scale-95 cursor-not-allowed"
+                        >
+                            refresh tool
+                        </button>
+                         </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Area -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-semibold text-gray-700">📝 Log Aktivitas</label>
+                    <button id="clearLogBtn" class="text-xs text-red-500 hover:text-red-700">Clear Log</button>
+                </div>
+                <div id="logArea" class="bg-gray-900 text-green-400 p-4 rounded-lg h-64 overflow-y-auto font-mono text-sm">
+                    <div class="text-gray-500">Menunggu simulasi dimulai...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visitor Cards Grid -->
+        <div id="visitorGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- Visitor cards akan muncul di sini -->
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let visitors = [];
+        let stats = { total: 0, success: 0, failed: 0 };
+
+        // User Agents berbeda untuk simulasi
+        const userAgents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1',
+            'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1',
+            'Mozilla/5.0 (Android 14; Mobile) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1.15',
+        ];
+
+        const devices = [
+            { name: 'Windows PC', icon: '💻', color: 'blue' },
+            { name: 'MacBook', icon: '🖥️', color: 'gray' },
+            { name: 'Firefox PC', icon: '🦊', color: 'orange' },
+            { name: 'Linux PC', icon: '🐧', color: 'yellow' },
+            { name: 'iPhone', icon: '📱', color: 'purple' },
+            { name: 'iPad', icon: '📱', color: 'indigo' },
+            { name: 'Android', icon: '🤖', color: 'green' },
+            { name: 'Safari Mac', icon: '🧭', color: 'pink' }
+        ];
+
+        const locations = [
+            '🇮🇩 Jakarta', '🇮🇩 Surabaya', '🇮🇩 Bandung', '🇮🇩 Medan', '🇮🇩 Semarang',
+            '🇮🇩 Makassar', '🇮🇩 Palembang', '🇮🇩 Denpasar', '🇮🇩 Yogyakarta', '🇮🇩 Malang'
+        ];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('id-ID');
+            const logEntry = document.createElement('div');
+            
+            let color = 'text-blue-400';
+            if (type === 'success') color = 'text-green-400';
+            if (type === 'error') color = 'text-red-400';
+            if (type === 'warning') color = 'text-yellow-400';
+            
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> <span class="${color}">${message}</span>`;
+            
+            const logArea = document.getElementById('logArea');
+            if (logArea.querySelector('.text-gray-500:only-child')) {
+                logArea.innerHTML = '';
+            }
+            
+            logArea.appendChild(logEntry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').textContent = stats.total;
+            document.getElementById('statSuccess').textContent = stats.success;
+            document.getElementById('statFailed').textContent = stats.failed;
+            
+            const progress = stats.total > 0 ? Math.round((stats.success + stats.failed) / stats.total * 100) : 0;
+            document.getElementById('statProgress').textContent = progress + '%';
+        }
+
+        function createVisitorCard(visitor) {
+            const card = document.createElement('div');
+            card.id = `visitor-${visitor.id}`;
+            card.className = 'bg-white rounded-lg shadow-lg p-4 transform transition hover:scale-105';
+            
+            const deviceInfo = devices[visitor.deviceIndex];
+            
+            card.innerHTML = `
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">${deviceInfo.icon}</span>
+                        <div>
+                            <div class="font-semibold text-gray-800">Visitor #${visitor.id}</div>
+                            <div class="text-xs text-gray-500">${deviceInfo.name}</div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-1 rounded text-xs font-semibold ${visitor.statusClass}">${visitor.status}</span>
+                </div>
+                <div class="space-y-1 text-xs text-gray-600">
+                    <div>📍 ${visitor.location}</div>
+                    <div>⏰ ${visitor.time}</div>
+                    <div class="truncate" title="${visitor.userAgent}">🔧 ${visitor.userAgent.substring(0, 40)}...</div>
+                </div>
+                <div class="mt-3 bg-gray-100 rounded p-2">
+                    <div class="text-xs text-gray-500 mb-1">Preview:</div>
+                    <iframe src="${visitor.url}" class="w-full h-32 rounded border border-gray-300 pointer-events-none" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function updateVisitorCard(visitorId, status) {
+            const card = document.getElementById(`visitor-${visitorId}`);
+            if (!card) return;
+            
+            const statusBadge = card.querySelector('span.px-2');
+            if (status === 'success') {
+                statusBadge.textContent = '✅ Success';
+                statusBadge.className = 'px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-800';
+                card.classList.add('ring-2', 'ring-green-400');
+            } else if (status === 'failed') {
+                statusBadge.textContent = '❌ Failed';
+                statusBadge.className = 'px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-800';
+                card.classList.add('ring-2', 'ring-red-400');
+            }
+        }
+
+        async function simulateVisitor(visitor, index) {
+            const delay = parseInt(document.getElementById('intervalInput').value) * 1000;
+            const randomDelay = document.getElementById('randomDelay').checked;
+            
+            let waitTime = delay * index;
+            if (randomDelay) {
+                waitTime += Math.random() * 2000; // Random tambahan 0-2 detik
+            }
+
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+
+            if (!isRunning) return;
+
+            addLog(`👤 Visitor #${visitor.id} dari ${visitor.location} sedang mengakses...`, 'info');
+            
+            // Simulasi loading
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+
+            if (!isRunning) return;
+
+            // Random success/fail (95% success rate)
+            const isSuccess = Math.random() > 0.05;
+            
+            if (isSuccess) {
+                stats.success++;
+                updateVisitorCard(visitor.id, 'success');
+                addLog(`✅ Visitor #${visitor.id} berhasil mengakses website`, 'success');
+            } else {
+                stats.failed++;
+                updateVisitorCard(visitor.id, 'failed');
+                addLog(`❌ Visitor #${visitor.id} gagal mengakses (timeout)`, 'error');
+            }
+            
+            updateStats();
+        }
+
+        async function startSimulation() {
+            const url = document.getElementById('urlInput').value.trim();
+            const visitorCount = parseInt(document.getElementById('visitorCount').value);
+
+            if (!url || !visitorCount) {
+                alert('Mohon isi semua field dengan benar!');
+                return;
+            }
+
+            if (visitorCount > 50) {
+                alert('Maksimal 50 visitor untuk performa optimal!');
+                return;
+            }
+
+            isRunning = true;
+            stats = { total: visitorCount, success: 0, failed: 0 };
+            visitors = [];
+
+            // Disable inputs
+            document.getElementById('urlInput').disabled = true;
+            document.getElementById('visitorCount').disabled = true;
+            document.getElementById('intervalInput').disabled = true;
+            document.getElementById('randomDelay').disabled = true;
+            document.getElementById('randomUA').disabled = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').classList.add('opacity-50', 'cursor-not-allowed');
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('stopBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+
+            document.getElementById('statusText').textContent = 'Running...';
+            document.getElementById('visitorGrid').innerHTML = '';
+
+            addLog(`🚀 Memulai simulasi ${visitorCount} visitor...`, 'info');
+            addLog(`🌐 Target: ${url}`, 'info');
+
+            updateStats();
+
+            // Create visitors
+            for (let i = 1; i <= visitorCount; i++) {
+                const deviceIndex = Math.floor(Math.random() * devices.length);
+                const visitor = {
+                    id: i,
+                    url: url + '?visitor=' + i + '&t=' + Date.now(),
+                    userAgent: document.getElementById('randomUA').checked 
+                        ? userAgents[deviceIndex] 
+                        : userAgents[0],
+                    deviceIndex: deviceIndex,
+                    location: locations[Math.floor(Math.random() * locations.length)],
+                    time: new Date().toLocaleTimeString('id-ID'),
+                    status: '⏳ Loading',
+                    statusClass: 'bg-yellow-100 text-yellow-800'
+                };
+
+                visitors.push(visitor);
+                
+                const card = createVisitorCard(visitor);
+                document.getElementById('visitorGrid').appendChild(card);
+
+                // Start simulation untuk visitor ini
+                simulateVisitor(visitor, i - 1);
+            }
+
+            // Check completion
+            const checkInterval = setInterval(() => {
+                if (stats.success + stats.failed >= stats.total || !isRunning) {
+                    clearInterval(checkInterval);
+                    if (isRunning) {
+                        stopSimulation(true);
+                    }
+                }
+            }, 500);
+        }
+
+        function stopSimulation(completed = false) {
+            isRunning = false;
+
+            document.getElementById('urlInput').disabled = false;
+            document.getElementById('visitorCount').disabled = false;
+            document.getElementById('intervalInput').disabled = false;
+            document.getElementById('randomDelay').disabled = false;
+            document.getElementById('randomUA').disabled = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('startBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('stopBtn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            if (completed) {
+                document.getElementById('statusText').textContent = 'Selesai ✅';
+                addLog(`🎉 Simulasi selesai! Success: ${stats.success}, Failed: ${stats.failed}`, 'success');
+            } else {
+                document.getElementById('statusText').textContent = 'Dihentikan';
+                addLog(`⏸️ Simulasi dihentikan oleh user`, 'warning');
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startSimulation);
+        document.getElementById('stopBtn').addEventListener('click', () => stopSimulation(false));
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            document.getElementById('logArea').innerHTML = '<div class="text-gray-500">Log dibersihkan...</div>';
+        });
+    </script>
+</body>
+</html>
